@@ -1,0 +1,38 @@
+name: Consumer Pipeline Trigger
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: 
+
+jobs:
+  # Primera llamada pasándole Node 18
+  call-reusable-node18:
+    name: Run Reusable Pipeline (Node 18)
+    uses: ./.github/workflows/reusable-pipeline.yml
+    with:
+      node-version: '18'
+
+  # Segunda llamada pasándole Node 20
+  call-reusable-node20:
+    name: Run Reusable Pipeline (Node 20)
+    uses: ./.github/workflows/reusable-pipeline.yml
+    with:
+      node-version: '20'
+
+  # Bloque final que recibe las respuestas y añade lógica propia
+  post-processing:
+    name: Post Execution Summary
+    needs: [call-reusable-node18, call-reusable-node20] 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Consumir outputs del Workflow Reutilizable
+        run: |
+          echo "El estado devuelto por el flujo de Node 18 es: ${{ needs.call-reusable-node18.outputs.status }}"
+          echo "El estado devuelto por el flujo de Node 20 es: ${{ needs.call-reusable-node20.outputs.status }}"
+
+      - name: Lógica adicional propia
+        run: |
+          echo "Iniciando análisis de calidad de logs..."
+          echo "Ambos entornos compilaron y reportaron de manera centralizada."
+          echo "El pipeline consumidor ha finalizado su procesamiento posterior con éxito."

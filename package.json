@@ -1,9 +1,0 @@
-{
-  "name": "laboratorio-pipeline",
-  "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo 'Todos los tests han pasado con éxito!'",
-    "build": "echo 'Compilación completada con éxito!'"
-  }
-}

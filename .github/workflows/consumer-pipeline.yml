@@ -6,21 +6,21 @@ on:
   workflow_dispatch: 
 
 jobs:
-  # Primera llamada pasándole Node 18
+  # 4.1. Llamada al reusable pasando inputs para Node 18
   call-reusable-node18:
     name: Run Reusable Pipeline (Node 18)
     uses: ./.github/workflows/reusable-pipeline.yml
     with:
       node-version: '18'
 
-  # Segunda llamada pasándole Node 20
+  # 4.2. Soporte multiversión: Llamada paralela pasando inputs para Node 20
   call-reusable-node20:
     name: Run Reusable Pipeline (Node 20)
     uses: ./.github/workflows/reusable-pipeline.yml
     with:
       node-version: '20'
 
-  # Bloque final que recibe las respuestas y añade lógica propia
+  # 4.3. Consumo de outputs y lógica adicional propia
   post-processing:
     name: Post Execution Summary
     needs: [call-reusable-node18, call-reusable-node20] 

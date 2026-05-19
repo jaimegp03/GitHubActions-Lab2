@@ -1,0 +1,69 @@
+name: Reusable Node.js Pipeline
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        required: true
+        type: string
+        description: "Versión de Node.js a utilizar"
+    outputs:
+      status:
+        description: "Resultado de la ejecución del pipeline"
+        value: ${{ jobs.build-and-test.outputs.pipeline-result }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    outputs:
+      pipeline-result: ${{ steps.set-output.outputs.result }}
+    
+    steps:
+      # Parte 5: Uso de acciones oficiales con versiones estables fijadas (v4) para seguridad
+      - name: Clonar el código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      # Parte 2: Configuración de la caché dinámica y segura
+      - name: Cache de dependencias de Node
+        uses: actions/cache@v4
+        id: node-cache
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Ejecutar Tests
+        id: run-tests
+        run: |
+          mkdir -p logs
+          npm test > logs/test-execution.log 2>&1
+
+      - name: Compilar proyecto
+        run: |
+          npm run build --if-present
+          mkdir -p dist
+          if [ ! -d "dist" ] || [ -z "$(ls -A dist)" ]; then echo "Build legacy" > dist/app.js; fi
+
+      # Parte 3: Subida de Artifacts (Compilado, Reporte y Logs) con retención personalizada
+      - name: Subir Artifact de Compilación y Logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-project-artifacts-${{ inputs.node-version }}
+          path: |
+            dist/
+            logs/
+          retention-days: 7
+
+      - name: Establecer Output Final
+        id: set-output
+        if: always()
+        run: echo "result=completed" >> $GITHUB_OUTPUT

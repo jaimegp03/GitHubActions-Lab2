@@ -6,21 +6,17 @@ on:
   workflow_dispatch: 
 
 jobs:
-  # 4.1. Llamada al reusable pasando inputs para Node 18
   call-reusable-node18:
     name: Run Reusable Pipeline (Node 18)
     uses: ./.github/workflows/reusable-pipeline.yml
     with:
       node-version: '18'
 
-  # 4.2. Soporte multiversión: Llamada paralela pasando inputs para Node 20
   call-reusable-node20:
     name: Run Reusable Pipeline (Node 20)
     uses: ./.github/workflows/reusable-pipeline.yml
     with:
       node-version: '20'
-
-  # 4.3. Consumo de outputs y lógica adicional propia
   post-processing:
     name: Post Execution Summary
     needs: [call-reusable-node18, call-reusable-node20] 
@@ -28,11 +24,12 @@ jobs:
     steps:
       - name: Consumir outputs del Workflow Reutilizable
         run: |
+          # Se accede al objeto 'needs' para leer las variables devueltas por los jobs anteriores
           echo "El estado devuelto por el flujo de Node 18 es: ${{ needs.call-reusable-node18.outputs.status }}"
           echo "El estado devuelto por el flujo de Node 20 es: ${{ needs.call-reusable-node20.outputs.status }}"
-
       - name: Lógica adicional propia
         run: |
+          # Pasos exclusivos de este proyecto consumidor que no están en el molde genérico
           echo "Iniciando análisis de calidad de logs..."
           echo "Ambos entornos compilaron y reportaron de manera centralizada."
           echo "El pipeline consumidor ha finalizado su procesamiento posterior con éxito."
